@@ -1,0 +1,73 @@
+Ex. No: 5 Interface DHT11 sensor with Raspberry Pi, write a program 
+to print temperature and humidity readings.
+ DHT11 is a Digital Sensor consisting of two different sensors in a single package. 
+ The sensor contains an NTC (Negative Temperature Coefficient) Temperature Sensor, a 
+Resistive-type Humidity Sensor and an 8-bit Microcontroller to convert the analog signals 
+from these sensors and produce a Digital Output.
+ DHT11 sensor measures and provides humidity and temperature values serially over a
+single wire.
+ It can measure relative humidity in percentage (20 to 90% RH) and temperature in degree 
+Celsius in the range of 0 to 50°C.
+ It has 4 pins; one of which is used for data communication in serial form.
+ Pulses of different TON and TOFF are decoded as logic 1 or logic 0 or start pulse or end 
+of a frame.
+Reading Digital Output from DHT11
+ DHT11 uses a Single bus data format for communication. Only a single data line between an 
+MCU like Arduino or Raspberry Pi and the DHT11 Sensor is sufficient for exchange of 
+information.
+ Microcontroller acts as a Master and the DHT11 Sensor acts as a Slave. The Data OUT of the 
+DHT11 Sensor is in open-drain configuration and hence it must always be pulled HIGH with 
+the help of a 5.1KΩ Resistor.
+ This pull-up will ensure that the status of the Data is HIGH when the Master doesn’t request 
+the data (DHT11 will not send the data unless requested by the Master).
+ Whenever the Microcontroller wants to acquire information from DHT11 Sensor, the pin of 
+the Microcontroller is configured as OUTPUT and it will make the Data Line low for a 
+minimum time of 18ms and releases the line. After this, the Microcontroller pin is made as 
+INPUT.
+ The data pin of the DHT11 Sensor, which is an INPUT pin, reads the LOW made by the 
+Microcontroller and acts as an OUTPUT pin and sends a response of LOW signal on the data 
+line for about 80µs and then pulls-up the line for another 80µs.
+ After this, the DHT11 Sensor sends a 40 bit data with Logic ‘0’ being a combination of 50µs 
+of LOW and 26 to 28µs of HIGH and Logic ‘1’ being 50µs of LOW and 70 to 80µs of HIGH.
+ After transmitting 40 bits of data, the DHT11 Data Pin stays LOW for another 50µs and 
+finally changes its state to input to accept the request from the Microcontroller. 
+Raspberry Pi DTH11 Humidity and Temperature Sensor Interface
+Circuit Diagram
+The following is the circuit diagram of the DHT11 and Raspberry Pi Interface.
+1. Connect GND pin to Ground Pin (39)
+2. Connect DATA Pin to GPIO18
+3. Connect VCC Pin to 5V (2)
+Installation of required Libraries
+Run the following command to install the CircuitPython-DHT library:
+pip3 install adafruit-circuitpython-dht
+sudo apt-get install libgpiod2
+Create a new file called code.py with Thonny Editor.
+
+
+
+Python Code : code.py
+import time
+import board
+import adafruit_dht
+# Initial the dht device, with data pin connected to:
+dhtDevice = adafruit_dht.DHT11(board.D18)
+while True:
+ try:
+ # Print the values to the serial port
+ temperature_c = dhtDevice.temperature
+ temperature_f = temperature_c * (9 / 5) + 32
+ humidity = dhtDevice.humidity
+ print(
+ "Temp: {:.1f} F / {:.1f} C Humidity: {}% ".format(
+ temperature_f, temperature_c, humidity
+ )
+ )
+ except RuntimeError as error:
+ # Errors happen fairly often, DHT's are hard to read, just keep going
+ print(error.args[0])
+ time.sleep(2.0)
+ continue
+ except Exception as error:
+ dhtDevice.exit()
+ raise error
+ time.sleep(2.0)
